@@ -1,5 +1,9 @@
+import 'package:credit_card_app/screens/credit_card_widget.dart';
 import 'package:credit_card_app/screens/home_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'model/credit_card_cubit.dart';
 
 void main() {
   runApp(const MyApp());

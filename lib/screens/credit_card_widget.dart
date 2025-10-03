@@ -1,22 +1,17 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:credit_card_app/controller/country_controller.dart';
 import 'package:credit_card_app/controller/credit_card_controller.dart';
-import 'package:credit_card_app/model/country.dart' as country;
-import 'package:credit_card_app/model/credit_card.dart';
+import 'package:credit_card_app/model/country.dart' as c;
+import 'package:credit_card_app/model/credit_card_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as debug;
 
+import '../model/card_info.dart';
 import '../utilities.dart';
 
-class CreditCardWidget extends StatefulWidget {
-  CreditCardWidget();
-
-  @override
-  State<StatefulWidget> createState() => CreditCardWidgetState();
-}
-
-class CreditCardWidgetState extends State<CreditCardWidget> {
+class CreditCardWidget extends StatelessWidget {
   TextEditingController countryEditingController = TextEditingController();
   TextEditingController cvvEditingController = TextEditingController();
   TextEditingController creditCardNumberEditingController =
@@ -25,8 +20,6 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
   CountryController countryController = CountryController();
 
   late DropdownButton2<String> dropDowButton;
-
-  String selectedCardType = 'Card Type';
 
   List<String> cardTypes = [
     'Card Type',
@@ -43,24 +36,21 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
     'Hiper/Hipercard',
   ];
 
-  @override
-  void initState() {
-    super.initState();
+  // We need a varibale to make sure this is only called once.
+  void initialize(BuildContext context, CardInfo cardInfo) {
     creditCardNumberEditingController.addListener(() {
-      print('Current text: ${creditCardNumberEditingController.text}');
-
       // Once there are 6-8 card numbers entered display card type is possible.
       if ((creditCardNumberEditingController.text.length == 6 ||
               creditCardNumberEditingController.text.length == 8) &&
-          selectedCardType == 'Card Type') {
+          Utilities.convertCardTypeToString(cardInfo.cardType!) ==
+              'Card Type') {
         creditCardController
             .inferCardType(creditCardNumberEditingController.text)
             .then((status) {
           // Set the card type whenever it is detected from a card number.
           if (creditCardController.isStatusACardType(status)) {
-            setState(() {
-              selectedCardType = status;
-            });
+            context.read<CreditCardCubit>().setCardType =
+                Utilities.convertCardType(status);
           }
           // Unable to detect a card number from a BIN
           else {}
@@ -75,6 +65,7 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
               countryEditingController.text.indexOf(')'));
           if (countryController.isBanned(countryCode)) {
             countryEditingController.clear();
+
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 backgroundColor: Colors.black,
                 content: Text('Error : Chosen Country Is Banned.',
@@ -82,145 +73,173 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
           }
         }
       });
-
-      // You can perform other actions here, like updating UI with setState()
     });
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(color: Utilities.backgroundColor),
-        child: ListView(
-          children: [
-            const SizedBox(
-              height: 5,
-            ),
-            // Country Picker
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: TextField(
-                readOnly: true,
-                onTap: () => showCountryPicker(
-                  context: context,
-                  showSearch: false,
-                  showPhoneCode:
-                      true, // optional. Shows phone code before the country name.
-                  onSelect: (Country country) {
-                    // Check if the selected country isn't banned
-                    debug.log('Select country: ${country.displayName}');
-                    countryEditingController.text = country.displayName;
-                  },
-                  countryListTheme: const CountryListThemeData(
-                    flagSize: 25,
-                    backgroundColor: Colors.black,
-                    textStyle: TextStyle(fontSize: 16, color: Colors.blueGrey),
-                    bottomSheetHeight:
-                        400, // Optional. Country list modal height
-                    //Optional. Sets the border radius for the bottomsheet.
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20.0),
-                      topRight: Radius.circular(20.0),
+  Widget build(BuildContext context) =>
+      // BlocBuilder<BlocA, BlocAState>
+      BlocBuilder<CreditCardCubit, CardInfo>(
+          buildWhen: (previous, current) => previous != current,
+          // The bloc parameter is omitted [CreditCardCubit], however it will be found automatically.
+          builder: (context, cardInfo) {
+            initialize(context, cardInfo);
+            return Container(
+              decoration: BoxDecoration(color: Utilities.backgroundColor),
+              child: ListView(
+                children: [
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  // Country Picker
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: TextField(
+                      readOnly: true,
+                      onTap: () => showCountryPicker(
+                        context: context,
+                        showSearch: false,
+                        showPhoneCode:
+                            true, // optional. Shows phone code before the country name.
+                        onSelect: (Country country) {
+                          // Check if the selected country isn't banned
+                          debug.log('Select country: ${country.displayName}');
+                          if (!countryController
+                              .isBanned(country.countryCode)) {
+                            context.read<CreditCardCubit>().setIssuingCountry =
+                                c.Country(
+                                    countryCode: country.countryCode,
+                                    countryName: country.name);
+                            countryEditingController.text = country.displayName;
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                backgroundColor: Colors.black,
+                                content: Text(
+                                    'Error : ${country.name} Is Banned.',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        color: Utilities.color2))));
+                          }
+                        },
+
+                        countryListTheme: const CountryListThemeData(
+                          flagSize: 25,
+                          backgroundColor: Colors.black,
+                          textStyle:
+                              TextStyle(fontSize: 16, color: Colors.blueGrey),
+                          bottomSheetHeight:
+                              400, // Optional. Country list modal height
+                          //Optional. Sets the border radius for the bottomsheet.
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20.0),
+                            topRight: Radius.circular(20.0),
+                          ),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      maxLength: 50,
+                      style: TextStyle(color: Utilities.color1),
+                      cursorColor: Utilities.color1,
+                      controller: countryEditingController,
+                      decoration: InputDecoration(
+                        labelText: 'Country',
+                        prefixIcon:
+                            Icon(Icons.location_city, color: Utilities.color1),
+                        labelStyle:
+                            TextStyle(fontSize: 14, color: Utilities.color1),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: Utilities.color3),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: Utilities.color3),
+                        ),
+                      ),
+                      obscureText: false,
                     ),
                   ),
-                ),
-                keyboardType: TextInputType.number,
-                maxLength: 50,
-                style: TextStyle(color: Utilities.color1),
-                cursorColor: Utilities.color1,
-                controller: countryEditingController,
-                decoration: InputDecoration(
-                  labelText: 'Country',
-                  prefixIcon:
-                      Icon(Icons.location_city, color: Utilities.color1),
-                  labelStyle: TextStyle(fontSize: 14, color: Utilities.color1),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Utilities.color3),
+                  const SizedBox(
+                    height: 5,
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Utilities.color3),
+                  // Credit Card Number Textfield
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: TextField(
+                      onChanged: ((value) {}),
+                      keyboardType: TextInputType.number,
+                      maxLength: 18,
+                      style: TextStyle(color: Utilities.color1),
+                      cursorColor: Utilities.color1,
+                      controller: creditCardNumberEditingController,
+                      decoration: InputDecoration(
+                        labelText: 'Card Number',
+                        prefixIcon:
+                            Icon(Icons.credit_card, color: Utilities.color1),
+                        labelStyle:
+                            TextStyle(fontSize: 14, color: Utilities.color1),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: Utilities.color3),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: Utilities.color3),
+                        ),
+                      ),
+                      obscureText: false,
+                    ),
                   ),
-                ),
-                obscureText: false,
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  // CVV Textfield
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      style: TextStyle(color: Utilities.color1),
+                      cursorColor: Utilities.color1,
+                      controller: cvvEditingController,
+                      decoration: InputDecoration(
+                        labelText: 'CVV',
+                        prefixIcon:
+                            Icon(Icons.numbers, color: Utilities.color1),
+                        labelStyle:
+                            TextStyle(fontSize: 14, color: Utilities.color1),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: Utilities.color3),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: Utilities.color3),
+                        ),
+                      ),
+                      obscureText: false,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  // Card Type Picker
+                  Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: pickCardType(context, cardInfo)),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: submitButton(cardInfo),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            // Credit Card Number Textfield
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: TextField(
-                onChanged: ((value) {}),
-                keyboardType: TextInputType.number,
-                maxLength: 18,
-                style: TextStyle(color: Utilities.color1),
-                cursorColor: Utilities.color1,
-                controller: creditCardNumberEditingController,
-                decoration: InputDecoration(
-                  labelText: 'Card Number',
-                  prefixIcon: Icon(Icons.credit_card, color: Utilities.color1),
-                  labelStyle: TextStyle(fontSize: 14, color: Utilities.color1),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Utilities.color3),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Utilities.color3),
-                  ),
-                ),
-                obscureText: false,
-              ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            // CVV Textfield
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: TextField(
-                keyboardType: TextInputType.number,
-                maxLength: 4,
-                style: TextStyle(color: Utilities.color1),
-                cursorColor: Utilities.color1,
-                controller: cvvEditingController,
-                decoration: InputDecoration(
-                  labelText: 'CVV',
-                  prefixIcon: Icon(Icons.numbers, color: Utilities.color1),
-                  labelStyle: TextStyle(fontSize: 14, color: Utilities.color1),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Utilities.color3),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Utilities.color3),
-                  ),
-                ),
-                obscureText: false,
-              ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            // Card Type Picker
-            Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: pickCardType(context)),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: submitButton(),
-            ),
-          ],
-        ),
-      );
+            );
+          });
 
-  Widget pickCardType(BuildContext context) {
+  Widget pickCardType(BuildContext context, CardInfo cardInfo) {
     cardTypes.sort();
 
     dropDowButton = DropdownButton2<String>(
@@ -254,11 +273,10 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
             ),
           )
           .toList(),
-      value: selectedCardType,
+      value: Utilities.convertCardTypeToString(cardInfo.cardType!),
       onChanged: (String? value) {
-        setState(() {
-          selectedCardType = value!;
-        });
+        context.read<CreditCardCubit>().setCardType =
+            Utilities.convertCardType(value!);
       },
       buttonStyleData: ButtonStyleData(
         height: 60,
@@ -300,7 +318,7 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
     return DropdownButtonHideUnderline(child: dropDowButton);
   }
 
-  Widget submitButton() => Builder(builder: (context) {
+  Widget submitButton(CardInfo cardInfo) => Builder(builder: (context) {
         return Container(
           width: MediaQuery.of(context).size.width,
           height: 60,
@@ -342,7 +360,8 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
               }
 
               // Check if card type is chosen (manually/automatically).
-              else if (selectedCardType.contains('Card Type')) {
+              else if (Utilities.convertCardTypeToString(cardInfo.cardType!)
+                  .contains('Card Type')) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     backgroundColor: Colors.black,
                     content: Text('Error: Card Type Is Not Chosen.',
@@ -351,31 +370,20 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
                 return;
               }
 
-              String countryName = countryEditingController.text
-                  .substring(0, countryEditingController.text.indexOf('(') - 1);
+              /*String countryName = countryEditingController.text
+                  .substring(0, countryEditingController.text.indexOf('(') - 1); 
               String countryCode = countryEditingController.text.substring(
                   countryEditingController.text.indexOf('(') + 1,
-                  countryEditingController.text.indexOf(')'));
+                  countryEditingController.text.indexOf(')')); */
 
-              // Check if the issuing country is banned or not.
-              if (countryController.isBanned(countryCode)) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.black,
-                    content: Text('Error : The Chosen Country Is Banned.',
-                        style:
-                            TextStyle(fontSize: 16, color: Utilities.color2))));
-                return;
-              }
-
-              CreditCard creditCard = CreditCard(
-                  creditCardNumber: creditCardNumberEditingController.text,
-                  cardType: Utilities.convertCardType(selectedCardType),
-                  cvv: cvvEditingController.text,
-                  issuingCountry: country.Country(
-                      countryCode: countryCode, countryName: countryName));
+              // The issuing country and the card type are already set.
+              context.read<CreditCardCubit>().setCreditCardNumber =
+                  creditCardNumberEditingController.text;
+              context.read<CreditCardCubit>().setCVV =
+                  cvvEditingController.text;
 
               // Check if the credit card has been checked before or not.
-              if (creditCardController.isCreditCardChecked(creditCard)) {
+              if (creditCardController.isCreditCardChecked(cardInfo)) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     backgroundColor: Colors.black,
                     content: Text('Error : The Credit Card Is Already Checked.',
@@ -384,7 +392,8 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
                 return;
               }
 
-              creditCardController.addCreditCard(creditCard);
+              // Now, use BlocListener to show a dialog box in response to credit card capturing.
+              creditCardController.addCreditCard(cardInfo);
             },
             child: const Center(
               child: Text(

@@ -4,8 +4,8 @@ class Country implements Comparable<Country> {
   bool isBanned; // Tells whether or not a country is banned.
 
   Country({
-    required this.countryCode,
-    required this.countryName,
+    this.countryCode = 'ZA',
+    this.countryName = 'South Africa',
     this.isBanned = false,
   });
 

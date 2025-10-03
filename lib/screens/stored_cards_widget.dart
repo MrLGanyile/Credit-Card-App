@@ -1,7 +1,7 @@
 import 'package:credit_card_app/controller/credit_card_controller.dart';
 import 'package:flutter/material.dart';
 
-import '../model/credit_card.dart';
+import '../model/card_info.dart';
 import '../utilities.dart';
 
 class StoredCardsWidget extends StatefulWidget {
@@ -17,7 +17,7 @@ class StoredCardsWidgetState extends State<StoredCardsWidget> {
   Widget build(BuildContext context) => ListView.builder(
         itemCount: CreditCardController.storedCards.length,
         itemBuilder: (context, index) {
-          CreditCard creditCard = CreditCardController.storedCards[index];
+          CardInfo cardInfo = CreditCardController.storedCards[index];
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -28,7 +28,7 @@ class StoredCardsWidgetState extends State<StoredCardsWidget> {
                     padding:
                         const EdgeInsets.only(right: 20, left: 20, bottom: 5),
                     child: Text(
-                      '${creditCard.creditCardNumber} [${Utilities.convertCardTypeToString(creditCard.cardType)}] ${creditCard.cvv}',
+                      '${cardInfo.creditCardNumber} [${Utilities.convertCardTypeToString(cardInfo.cardType!)}] ${cardInfo.cvv}',
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 16,
@@ -41,7 +41,7 @@ class StoredCardsWidgetState extends State<StoredCardsWidget> {
                     padding:
                         const EdgeInsets.only(right: 20, left: 20, bottom: 5),
                     child: Text(
-                      '${creditCard.issuingCountry.countryName} [${creditCard.issuingCountry.countryCode}]',
+                      '${cardInfo.issuingCountry!.countryName} [${cardInfo.issuingCountry!.countryCode}]',
                       style: TextStyle(
                         fontSize: 16,
                         color: Utilities.color3,
@@ -57,7 +57,7 @@ class StoredCardsWidgetState extends State<StoredCardsWidget> {
                   color: Utilities.color1,
                 ),
                 onPressed: () => setState(() {
-                  creditCardController.removeFromStoredCreditCards(creditCard);
+                  creditCardController.removeFromStoredCreditCards(cardInfo);
                 }),
               )
             ],

@@ -1,6 +1,6 @@
 import 'package:credit_card_app/controller/country_controller.dart';
-import 'package:credit_card_app/model/credit_card.dart';
 
+import '../model/card_info.dart';
 import '../model/credit_card_type.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -13,39 +13,54 @@ class CreditCardController {
   final String API_KEY = 'd7a9c1da43e44682b16913ddc3500401';
 
   // Stores all cards that a saved for the current session.
-  static List<CreditCard> storedCards = [];
+  static List<CardInfo> storedCards = [];
 
   // Stores all cards that have been checked, captured or been attempted to.
-  final Set<CreditCard> checkedCards = {};
+  final Set<CardInfo> checkedCards = {};
 
   // Holds country controller in order to access country based operations.
   CountryController countryController = CountryController();
 
   // Determines whether or not a country has been checked before.
-  bool isCreditCardChecked(CreditCard creditCard) {
-    return checkedCards.contains(creditCard);
+  bool isCreditCardChecked(CardInfo cardInfo) {
+    return checkedCards.contains(cardInfo);
   }
 
   // Adds a card to a list of cards that have been checked before.
-  void addToCheckedCards(CreditCard creditCard) {
-    checkedCards.add(creditCard);
+  void addToCheckedCards(CardInfo cardInfo) {
+    if (!checkedCards.contains(cardInfo)) {
+      cardInfo.setIsChecked = true;
+      checkedCards.add(cardInfo);
+    }
   }
 
   // Saves a credit card.
-  void addCreditCard(CreditCard card) {
-    if (!storedCards.contains(card)) {
+  void addCreditCard(CardInfo card) {
+    addToCheckedCards(card);
+    if (!storedCards.contains(card) && _isValidCard(card)) {
       storedCards.add(card);
       print('.............card added');
     }
   }
 
   // Delete a saved credit card.
-  void removeFromStoredCreditCards(CreditCard card) {
+  void removeFromStoredCreditCards(CardInfo card) {
     storedCards.remove(card);
   }
 
+  // Check whether the provided card is valid or not.
+  bool _isValidCard(CardInfo card) {
+    return !card.issuingCountry!.isBanned &&
+            card.creditCardNumber!.length == 16 ||
+        card.creditCardNumber!.length == 18 &&
+            _containsNumbersOnly(card.creditCardNumber!) &&
+            card.cardType != CreditCardType.cardType &&
+            _containsNumbersOnly(card.cvv!) &&
+            card.cvv!.length == 3;
+  }
+
   // Determines whether a given card number contains numbers only.
-  bool containsNumbersOnly(String cardNumber) {
+  bool _containsNumbersOnly(String cardNumber) {
     for (int characterIndex = 0;
         characterIndex < cardNumber.length;
         characterIndex++) {

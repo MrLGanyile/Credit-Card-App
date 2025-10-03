@@ -3,7 +3,9 @@ import 'package:credit_card_app/screens/countries_restoration_widget.dart';
 import 'package:credit_card_app/screens/credit_card_widget.dart';
 import 'package:credit_card_app/utilities.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../model/credit_card_cubit.dart';
 import 'stored_cards_widget.dart';
 
 class HomeWidget extends StatefulWidget {
@@ -91,7 +93,10 @@ class HomeWidgetState extends State<HomeWidget>
               color: Utilities.backgroundColor,
             ),
             child: TabBarView(controller: _tabController, children: [
-              CreditCardWidget(),
+              BlocProvider(
+                create: (_) => CreditCardCubit(),
+                child: CreditCardWidget(),
+              ),
               CountriesRemovalWidget(),
               CountriesRestorationWidget(),
               StoredCardsWidget()
