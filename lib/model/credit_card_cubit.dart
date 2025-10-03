@@ -1,8 +1,8 @@
-import 'package:credit_card_app/model/country.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../controller/credit_card_controller.dart';
 import 'card_info.dart';
+import 'country.dart';
 import 'credit_card_type.dart';
 
 class CreditCardCubit extends Cubit<CardInfo>

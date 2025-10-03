@@ -1,3 +1,4 @@
+import 'package:credit_card_app/model/banned_countries_cubit.dart';
 import 'package:credit_card_app/screens/countries_removal_widget.dart';
 import 'package:credit_card_app/screens/countries_restoration_widget.dart';
 import 'package:credit_card_app/screens/credit_card_widget.dart';
@@ -97,8 +98,12 @@ class HomeWidgetState extends State<HomeWidget>
                 create: (_) => CreditCardCubit(),
                 child: CreditCardWidget(),
               ),
-              CountriesRemovalWidget(),
-              CountriesRestorationWidget(),
+              BlocProvider(
+                  create: (context) => BannedCountriesCubit(),
+                  child: CountriesRemovalWidget()),
+              BlocProvider(
+                  create: (context) => BannedCountriesCubit(),
+                  child: CountriesRestorationWidget()),
               StoredCardsWidget()
             ]),
           ),

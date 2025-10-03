@@ -1,5 +1,3 @@
-import 'package:credit_card_app/controller/country_controller.dart';
-
 import '../model/card_info.dart';
 import '../model/credit_card_type.dart';
 import 'package:http/http.dart' as http;
@@ -17,9 +15,6 @@ class CreditCardController {
 
   // Stores all cards that have been checked, captured or been attempted to.
   final Set<CardInfo> checkedCards = {};
-
-  // Holds country controller in order to access country based operations.
-  CountryController countryController = CountryController();
 
   // Determines whether or not a country has been checked before.
   bool isCreditCardChecked(CardInfo cardInfo) {

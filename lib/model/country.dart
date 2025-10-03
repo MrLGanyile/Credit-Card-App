@@ -9,17 +9,17 @@ class Country implements Comparable<Country> {
     this.isBanned = false,
   });
 
-  // Ban this country.
-  void setIsBanned(bool isBanned) {
-    this.isBanned = isBanned;
-  }
+  set setCountryCode(String countryCode) => this.countryCode = countryCode;
+  set setCountryName(String countryName) => this.countryName = countryName;
+  set setIsBanned(bool isBanned) => this.isBanned = isBanned;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is Country &&
         countryName == other.countryName &&
-        countryCode == other.countryCode;
+        countryCode == other.countryCode &&
+        isBanned == other.isBanned;
   }
 
   @override

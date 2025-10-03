@@ -1,14 +1,14 @@
 import 'package:country_picker/country_picker.dart';
-import 'package:credit_card_app/controller/country_controller.dart';
 import 'package:credit_card_app/controller/credit_card_controller.dart';
-import 'package:credit_card_app/model/country.dart' as c;
 import 'package:credit_card_app/model/credit_card_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as debug;
 
+import '../model/banned_countries.dart';
 import '../model/card_info.dart';
+import '../model/country.dart' as c;
 import '../utilities.dart';
 
 class CreditCardWidget extends StatelessWidget {
@@ -17,7 +17,9 @@ class CreditCardWidget extends StatelessWidget {
   TextEditingController creditCardNumberEditingController =
       TextEditingController();
   CreditCardController creditCardController = CreditCardController();
-  CountryController countryController = CountryController();
+
+  // Supposed to be the same as the others defined on other widgets.
+  // BannedCountries bannedCountries = BannedCountries();
 
   late DropdownButton2<String> dropDowButton;
 
@@ -63,7 +65,7 @@ class CreditCardWidget extends StatelessWidget {
           String countryCode = countryEditingController.text.substring(
               countryEditingController.text.indexOf('(') + 1,
               countryEditingController.text.indexOf(')'));
-          if (countryController.isBanned(countryCode)) {
+          if (Utilities.bannedCountries.isBanned(countryCode)) {
             countryEditingController.clear();
 
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -104,12 +106,13 @@ class CreditCardWidget extends StatelessWidget {
                         onSelect: (Country country) {
                           // Check if the selected country isn't banned
                           debug.log('Select country: ${country.displayName}');
-                          if (!countryController
+                          if (!Utilities.bannedCountries
                               .isBanned(country.countryCode)) {
+                            c.Country myCountry = c.Country();
+                            myCountry.setCountryCode = country.countryCode;
+                            myCountry.setCountryName = country.name;
                             context.read<CreditCardCubit>().setIssuingCountry =
-                                c.Country(
-                                    countryCode: country.countryCode,
-                                    countryName: country.name);
+                                myCountry;
                             countryEditingController.text = country.displayName;
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(

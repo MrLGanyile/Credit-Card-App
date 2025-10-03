@@ -1,8 +1,10 @@
-import '../model/country.dart';
+import 'country.dart';
 
-class CountryController {
+class BannedCountries {
   // Stores a list of all banned countries.
-  static List<Country> bannedCountries = [];
+  List<Country> bannedCountries;
+
+  BannedCountries(this.bannedCountries);
 
   // Checks whether a given country is banned or not.
   bool isBanned(String countryCode) {
@@ -15,8 +17,13 @@ class CountryController {
     return false;
   }
 
+  int findNumberOfBannedCountries() => bannedCountries.length;
+
+  Country findSingleCardInfo(int index) => bannedCountries[index];
+
   // Add a country to a list of banned countries.
   void addToBannedCountries(String countryCode, String countryName) {
+    print('..........................${bannedCountries.length}');
     if (!isBanned(countryCode)) {
       bannedCountries.add(Country(
           countryCode: countryCode, countryName: countryName, isBanned: true));
@@ -25,8 +32,11 @@ class CountryController {
 
   // Remove a country from a list of banned countries.
   void removeFromBannedCountries(Country country) {
-    if (isBanned(country.countryCode)) {
-      bannedCountries.remove(country);
-    }
+    //if (isBanned(country.countryCode)) {
+
+    bannedCountries.remove(country);
+    print('..........................${bannedCountries.length}');
+
+    //}
   }
 }
