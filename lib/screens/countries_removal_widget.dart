@@ -1,8 +1,6 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:credit_card_app/controller/country_controller.dart';
-import 'package:credit_card_app/model/country.dart' as my;
 import 'package:flutter/material.dart';
-import 'dart:developer' as debug;
 
 import '../utilities.dart';
 
@@ -18,22 +16,22 @@ class CountriesRemovalWidgetState extends State<CountriesRemovalWidget> {
   @override
   Widget build(BuildContext context) => Center(
         child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(
               height: 25,
             ),
+            // Display message
             Text(
               'Pick Country To Ban',
               style: TextStyle(
                 fontSize: 18,
-                // fontWeight: FontWeight.bold,
                 color: Utilities.color1,
               ),
             ),
             const SizedBox(
               height: 5,
             ),
+            // Delete Icon
             Icon(
               Icons.delete,
               size: 40,
@@ -53,17 +51,25 @@ class CountriesRemovalWidgetState extends State<CountriesRemovalWidget> {
                   showSearch: false,
                   showPhoneCode: true,
                   onSelect: (Country country) {
-                    // Check if the selected country isn't banned
+                    // Check if the selected country isn't banned before accepting it.
                     // debug.log('Select country: ${country.displayName}');
-                    countryEditingController.text = country.displayName;
+                    if (!countryController.isBanned(country.countryCode)) {
+                      countryEditingController.text = country.displayName;
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          backgroundColor: Colors.black,
+                          content: Text(
+                              overflow: TextOverflow.ellipsis,
+                              'Error : The Chosen Country Is Banned Already.',
+                              style: TextStyle(
+                                  fontSize: 16, color: Utilities.color2))));
+                    }
                   },
                   countryListTheme: const CountryListThemeData(
                     flagSize: 25,
                     backgroundColor: Colors.black,
                     textStyle: TextStyle(fontSize: 16, color: Colors.blueGrey),
-                    bottomSheetHeight:
-                        400, // Optional. Country list modal height
-                    //Optional. Sets the border radius for the bottomsheet.
+                    bottomSheetHeight: 400,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(20.0),
                       topRight: Radius.circular(20.0),
@@ -95,6 +101,7 @@ class CountriesRemovalWidgetState extends State<CountriesRemovalWidget> {
             const SizedBox(
               height: 5,
             ),
+            // Ban Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: banButton(),

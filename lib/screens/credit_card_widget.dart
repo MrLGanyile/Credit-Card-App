@@ -50,8 +50,9 @@ class CreditCardWidgetState extends State<CreditCardWidget> {
       print('Current text: ${creditCardNumberEditingController.text}');
 
       // Once there are 6-8 card numbers entered display card type is possible.
-      if (creditCardNumberEditingController.text.length >= 6 &&
-          creditCardNumberEditingController.text.length <= 8) {
+      if ((creditCardNumberEditingController.text.length == 6 ||
+              creditCardNumberEditingController.text.length == 8) &&
+          selectedCardType == 'Card Type') {
         creditCardController
             .inferCardType(creditCardNumberEditingController.text)
             .then((status) {

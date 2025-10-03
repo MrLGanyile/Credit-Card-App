@@ -1,10 +1,11 @@
+// All types of cards that a supported.
 enum CreditCardType {
   cardType,
   visa,
   mastercard,
   americanExpress,
   discover,
-  dinersClub, // Done
+  dinersClub,
   jcb,
   unionPay,
   maestro,

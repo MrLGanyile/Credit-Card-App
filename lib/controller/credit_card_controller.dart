@@ -1,6 +1,5 @@
 import 'package:credit_card_app/controller/country_controller.dart';
 import 'package:credit_card_app/model/credit_card.dart';
-import 'package:credit_card_validator/credit_card_validator.dart';
 
 import '../model/credit_card_type.dart';
 import 'package:http/http.dart' as http;
@@ -13,49 +12,62 @@ class CreditCardController {
   // ignore: non_constant_identifier_names
   final String API_KEY = 'd7a9c1da43e44682b16913ddc3500401';
 
-  final List<CreditCard> validatedCards = [];
+  // Stores all cards that a saved for the current session.
+  static List<CreditCard> storedCards = [];
+
+  // Stores all cards that have been checked, captured or been attempted to.
   final Set<CreditCard> checkedCards = {};
-  CreditCardValidator ccValidator = CreditCardValidator();
+
+  // Holds country controller in order to access country based operations.
   CountryController countryController = CountryController();
 
-  bool isValidCreditCard(CreditCard card) {
-    var ccNumResults = ccValidator.validateCCNum(card.creditCardNumber);
-    var cvvResults = ccValidator.validateCVV(card.cvv, ccNumResults.ccType);
-    var countryResult =
-        countryController.isBanned(card.issuingCountry.countryCode);
-    addToCheckedCards(card);
-
-    return ccNumResults.isValid && cvvResults.isValid && countryResult;
-  }
-
+  // Determines whether or not a country has been checked before.
   bool isCreditCardChecked(CreditCard creditCard) {
     return checkedCards.contains(creditCard);
   }
 
+  // Adds a card to a list of cards that have been checked before.
   void addToCheckedCards(CreditCard creditCard) {
     checkedCards.add(creditCard);
   }
 
-  // Do not capture same card twice.
+  // Saves a credit card.
   void addCreditCard(CreditCard card) {
-    if (isValidCreditCard(card) && !validatedCards.contains(card)) {
-      validatedCards.add(card);
+    if (!storedCards.contains(card)) {
+      storedCards.add(card);
+      print('.............card added');
     }
   }
 
-  void removeCreditCard(CreditCard card) {
-    validatedCards.remove(card);
+  // Delete a saved credit card.
+  void removeFromStoredCreditCards(CreditCard card) {
+    storedCards.remove(card);
   }
 
-  List<CreditCard> displayAllCreditCardCapturedDuringSession() {
-    return validatedCards;
-  }
-
-  // Incomplete
+  // Determines whether a given card number contains numbers only.
   bool containsNumbersOnly(String cardNumber) {
+    for (int characterIndex = 0;
+        characterIndex < cardNumber.length;
+        characterIndex++) {
+      if (!(cardNumber[characterIndex] == '0' ||
+          cardNumber[characterIndex] == '0' ||
+          cardNumber[characterIndex] == '1' ||
+          cardNumber[characterIndex] == '2' ||
+          cardNumber[characterIndex] == '3' ||
+          cardNumber[characterIndex] == '4' ||
+          cardNumber[characterIndex] == '5' ||
+          cardNumber[characterIndex] == '6' ||
+          cardNumber[characterIndex] == '7' ||
+          cardNumber[characterIndex] == '8' ||
+          cardNumber[characterIndex] == '9')) {
+        return false;
+      }
+    }
     return true;
   }
 
+  /* Determines whether a given status produced by the BIN Codes API
+  refers to one of the supported card types or not. */
   bool isStatusACardType(String status) {
     return status == 'Visa' ||
         status == 'Mastercard' ||
@@ -70,6 +82,10 @@ class CreditCardController {
         status == 'Hiper/Hipercard';
   }
 
+  /* Determines a card type from a given six or eight digit number. 
+     The return is the status refering to either one of the supported 
+     card types or an error message produced by calling the API.
+  */
   Future<String> inferCardType(String sixOrEightDigits) async {
     print(
         '.............................Before Internet Connection inferCardType');

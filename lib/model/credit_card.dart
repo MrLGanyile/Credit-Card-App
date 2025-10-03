@@ -4,10 +4,10 @@ import '../utilities.dart';
 import 'country.dart';
 
 class CreditCard implements Comparable<CreditCard> {
-  String creditCardNumber;
-  CreditCardType cardType;
-  String cvv;
-  Country issuingCountry;
+  String creditCardNumber; // Stores credit card number.
+  CreditCardType cardType; // Stores card type from 12 predefined ones.
+  String cvv; // Stores a cvv of a card.
+  Country issuingCountry; // Stores the issuing country.
 
   CreditCard({
     required this.creditCardNumber,
@@ -15,10 +15,6 @@ class CreditCard implements Comparable<CreditCard> {
     required this.cvv,
     required this.issuingCountry,
   });
-
-  bool isValid() {
-    return true;
-  }
 
   @override
   bool operator ==(Object other) {

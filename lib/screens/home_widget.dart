@@ -4,6 +4,8 @@ import 'package:credit_card_app/screens/credit_card_widget.dart';
 import 'package:credit_card_app/utilities.dart';
 import 'package:flutter/material.dart';
 
+import 'stored_cards_widget.dart';
+
 class HomeWidget extends StatefulWidget {
   HomeWidget();
 
@@ -15,8 +17,9 @@ class HomeWidgetState extends State<HomeWidget>
     with SingleTickerProviderStateMixin {
   List<String> titles = [
     'Admin',
-    'Country In',
-    'Country Out',
+    'Banned Countries',
+    'Burn Country',
+    'Stored Cards'
   ];
   int currentIndex = 0;
 
@@ -26,7 +29,7 @@ class HomeWidgetState extends State<HomeWidget>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 3,
+      length: 4,
       vsync: this,
     );
   }
@@ -61,7 +64,6 @@ class HomeWidgetState extends State<HomeWidget>
             controller: _tabController,
             indicatorColor: Utilities.color3,
             indicatorWeight: 5,
-            //dividerHeight: 0,
             indicatorPadding: const EdgeInsets.only(bottom: 8),
             tabs: [
               Tab(
@@ -76,6 +78,10 @@ class HomeWidgetState extends State<HomeWidget>
                 icon: Icon(Icons.restore, color: Utilities.color1),
                 text: 'Restore',
               ),
+              Tab(
+                icon: Icon(Icons.credit_card, color: Utilities.color1),
+                text: 'Cards',
+              ),
             ],
           ),
         ),
@@ -87,7 +93,8 @@ class HomeWidgetState extends State<HomeWidget>
             child: TabBarView(controller: _tabController, children: [
               CreditCardWidget(),
               CountriesRemovalWidget(),
-              CountriesRestorationWidget()
+              CountriesRestorationWidget(),
+              StoredCardsWidget()
             ]),
           ),
         ),

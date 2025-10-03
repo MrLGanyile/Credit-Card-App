@@ -1,7 +1,7 @@
 class Country implements Comparable<Country> {
-  String countryCode;
-  String countryName;
-  bool isBanned;
+  String countryCode; // Stores a country code.
+  String countryName; // Stores a country name.
+  bool isBanned; // Tells whether or not a country is banned.
 
   Country({
     required this.countryCode,
@@ -9,6 +9,7 @@ class Country implements Comparable<Country> {
     this.isBanned = false,
   });
 
+  // Ban this country.
   void setIsBanned(bool isBanned) {
     this.isBanned = isBanned;
   }

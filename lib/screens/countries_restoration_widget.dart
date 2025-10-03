@@ -33,6 +33,7 @@ class CountriesRestorationWidgetState
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        // Displays country name and country code, e.g South Africa [ZA].
         Padding(
           padding: const EdgeInsets.only(right: 20, left: 20, bottom: 5),
           child: Text(
@@ -43,6 +44,7 @@ class CountriesRestorationWidgetState
             ),
           ),
         ),
+        // Country deletion button
         IconButton(
           icon: Icon(
             Icons.delete,
