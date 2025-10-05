@@ -1,50 +1,54 @@
-import '../model/card_info.dart';
-import '../model/credit_card_type.dart';
+import 'credit_card.dart';
+import 'credit_card_type.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../utilities.dart';
 
-class CreditCardController {
+class CreditCardRepository {
   // Limited to 20 Requests Per Day.
   // ignore: non_constant_identifier_names
   final String API_KEY = 'd7a9c1da43e44682b16913ddc3500401';
 
   // Stores all cards that a saved for the current session.
-  static List<CardInfo> storedCards = [];
+  List<CreditCard> storedCards = [];
 
   // Stores all cards that have been checked, captured or been attempted to.
-  final Set<CardInfo> checkedCards = {};
+  Set<CreditCard> checkedCards = {};
+
+  CreditCardRepository(this.storedCards, this.checkedCards);
 
   // Determines whether or not a country has been checked before.
-  bool isCreditCardChecked(CardInfo cardInfo) {
-    return checkedCards.contains(cardInfo);
+  bool isCreditCardChecked(CreditCard creditCard) {
+    return checkedCards.contains(creditCard);
   }
 
   // Adds a card to a list of cards that have been checked before.
-  void addToCheckedCards(CardInfo cardInfo) {
-    if (!checkedCards.contains(cardInfo)) {
-      cardInfo.setIsChecked = true;
-      checkedCards.add(cardInfo);
+  void _addToCheckedCards(CreditCard creditCard) {
+    if (!checkedCards.contains(creditCard)) {
+      creditCard.setIsChecked = true;
+      checkedCards.add(creditCard);
     }
   }
 
   // Saves a credit card.
-  void addCreditCard(CardInfo card) {
-    addToCheckedCards(card);
+  void saveCreditCard(CreditCard card) {
+    _addToCheckedCards(card);
     if (!storedCards.contains(card) && _isValidCard(card)) {
       storedCards.add(card);
-      print('.............card added');
     }
   }
 
   // Delete a saved credit card.
-  void removeFromStoredCreditCards(CardInfo card) {
-    storedCards.remove(card);
+  void removeFromStoredCreditCards(CreditCard creditCard) {
+    if (checkedCards.contains(creditCard)) {
+      storedCards.remove(creditCard);
+      print('****************************card removed');
+    }
   }
 
   // Check whether the provided card is valid or not.
-  bool _isValidCard(CardInfo card) {
+  bool _isValidCard(CreditCard card) {
     return !card.issuingCountry!.isBanned &&
             card.creditCardNumber!.length == 16 ||
         card.creditCardNumber!.length == 18 &&

@@ -1,7 +1,8 @@
-import 'package:credit_card_app/model/banned_countries.dart';
 import 'package:flutter/material.dart';
 
-import 'model/credit_card_type.dart';
+import 'states/countries_repository.dart';
+import 'states/credit_card_repository.dart';
+import 'states/credit_card_type.dart';
 
 class Utilities {
   static Color cardTypeTextColor = Colors.yellow;
@@ -11,7 +12,9 @@ class Utilities {
   static Color backgroundColor = Colors.black;
   static Color color4 = Colors.pink;
 
-  static BannedCountries bannedCountries = BannedCountries([]);
+  static CountriesRepository bannedCountries = CountriesRepository([]);
+  static CreditCardRepository creditCardsRepository =
+      CreditCardRepository([], {});
 
   static String convertCardTypeToString(CreditCardType cardType) {
     switch (cardType) {

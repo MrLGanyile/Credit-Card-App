@@ -1,4 +1,4 @@
-import 'package:credit_card_app/model/banned_countries_cubit.dart';
+import 'package:credit_card_app/bloc/countries_repository_cubit.dart';
 import 'package:credit_card_app/screens/countries_removal_widget.dart';
 import 'package:credit_card_app/screens/countries_restoration_widget.dart';
 import 'package:credit_card_app/screens/credit_card_widget.dart';
@@ -6,7 +6,8 @@ import 'package:credit_card_app/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../model/credit_card_cubit.dart';
+import '../bloc/credit_card_cubit.dart';
+import '../bloc/credit_card_repository_cubit.dart';
 import 'stored_cards_widget.dart';
 
 class HomeWidget extends StatefulWidget {
@@ -99,12 +100,15 @@ class HomeWidgetState extends State<HomeWidget>
                 child: CreditCardWidget(),
               ),
               BlocProvider(
-                  create: (context) => BannedCountriesCubit(),
+                  create: (context) => CountriesRepositoryCubit(),
                   child: CountriesRemovalWidget()),
               BlocProvider(
-                  create: (context) => BannedCountriesCubit(),
+                  create: (context) => CountriesRepositoryCubit(),
                   child: CountriesRestorationWidget()),
-              StoredCardsWidget()
+              BlocProvider(
+                create: (context) => CreditCardRepositoryCubit(),
+                child: StoredCardsWidget(),
+              )
             ]),
           ),
         ),

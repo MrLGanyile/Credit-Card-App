@@ -1,14 +1,12 @@
 import 'package:country_picker/country_picker.dart';
-import 'package:credit_card_app/controller/credit_card_controller.dart';
-import 'package:credit_card_app/model/credit_card_cubit.dart';
+import 'package:credit_card_app/bloc/credit_card_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as debug;
 
-import '../model/banned_countries.dart';
-import '../model/card_info.dart';
-import '../model/country.dart' as c;
+import '../states/country.dart' as c;
+import '../states/credit_card.dart';
 import '../utilities.dart';
 
 class CreditCardWidget extends StatelessWidget {
@@ -16,7 +14,6 @@ class CreditCardWidget extends StatelessWidget {
   TextEditingController cvvEditingController = TextEditingController();
   TextEditingController creditCardNumberEditingController =
       TextEditingController();
-  CreditCardController creditCardController = CreditCardController();
 
   // Supposed to be the same as the others defined on other widgets.
   // BannedCountries bannedCountries = BannedCountries();
@@ -38,19 +35,44 @@ class CreditCardWidget extends StatelessWidget {
     'Hiper/Hipercard',
   ];
 
-  // We need a varibale to make sure this is only called once.
-  void initialize(BuildContext context, CardInfo cardInfo) {
+  // Add appropriate listeners to all text field of the page.
+  void initialize(BuildContext context, CreditCard creditCard) {
+    // Check if the chosen country is not banned.
+    countryEditingController.addListener(() {
+      if (countryEditingController.text.isNotEmpty) {
+        String countryCode = countryEditingController.text.substring(
+            countryEditingController.text.indexOf('(') + 1,
+            countryEditingController.text.indexOf(')'));
+        if (Utilities.bannedCountries.isBanned(countryCode)) {
+          countryEditingController.clear();
+
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.black,
+              content: Text('Error : Chosen Country Is Banned.',
+                  style: TextStyle(fontSize: 16, color: Utilities.color2))));
+        } else {
+          String countryName = countryEditingController.text
+              .substring(0, countryEditingController.text.indexOf('(') - 1);
+
+          c.Country country =
+              c.Country(countryCode: countryCode, countryName: countryName);
+          context.read<CreditCardCubit>().setIssuingCountry = country;
+        }
+      }
+    });
+
+    // Call the BIN Code API when a credit card number is entered.
     creditCardNumberEditingController.addListener(() {
       // Once there are 6-8 card numbers entered display card type is possible.
       if ((creditCardNumberEditingController.text.length == 6 ||
               creditCardNumberEditingController.text.length == 8) &&
-          Utilities.convertCardTypeToString(cardInfo.cardType!) ==
+          Utilities.convertCardTypeToString(creditCard.cardType!) ==
               'Card Type') {
-        creditCardController
+        Utilities.creditCardsRepository
             .inferCardType(creditCardNumberEditingController.text)
             .then((status) {
           // Set the card type whenever it is detected from a card number.
-          if (creditCardController.isStatusACardType(status)) {
+          if (Utilities.creditCardsRepository.isStatusACardType(status)) {
             context.read<CreditCardCubit>().setCardType =
                 Utilities.convertCardType(status);
           }
@@ -59,31 +81,20 @@ class CreditCardWidget extends StatelessWidget {
         });
       }
 
-      // Check if the chosen country is not banned.
-      countryEditingController.addListener(() {
-        if (countryEditingController.text.isNotEmpty) {
-          String countryCode = countryEditingController.text.substring(
-              countryEditingController.text.indexOf('(') + 1,
-              countryEditingController.text.indexOf(')'));
-          if (Utilities.bannedCountries.isBanned(countryCode)) {
-            countryEditingController.clear();
+      // Set the credit card number.
+      context.read<CreditCardCubit>().setCreditCardNumber =
+          creditCardNumberEditingController.text;
+    });
 
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: Colors.black,
-                content: Text('Error : Chosen Country Is Banned.',
-                    style: TextStyle(fontSize: 16, color: Utilities.color2))));
-          }
-        }
-      });
+    cvvEditingController.addListener(() {
+      context.read<CreditCardCubit>().setCVV = cvvEditingController.text;
     });
   }
 
   @override
   Widget build(BuildContext context) =>
-      // BlocBuilder<BlocA, BlocAState>
-      BlocBuilder<CreditCardCubit, CardInfo>(
+      BlocBuilder<CreditCardCubit, CreditCard>(
           buildWhen: (previous, current) => previous != current,
-          // The bloc parameter is omitted [CreditCardCubit], however it will be found automatically.
           builder: (context, cardInfo) {
             initialize(context, cardInfo);
             return Container(
@@ -201,7 +212,7 @@ class CreditCardWidget extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: TextField(
                       keyboardType: TextInputType.number,
-                      maxLength: 4,
+                      maxLength: 3,
                       style: TextStyle(color: Utilities.color1),
                       cursorColor: Utilities.color1,
                       controller: cvvEditingController,
@@ -235,14 +246,15 @@ class CreditCardWidget extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: submitButton(cardInfo),
+                    child: submitButton(context, cardInfo),
                   ),
                 ],
               ),
             );
           });
 
-  Widget pickCardType(BuildContext context, CardInfo cardInfo) {
+  // For manually picking a card type.
+  Widget pickCardType(BuildContext context, CreditCard creditCard) {
     cardTypes.sort();
 
     dropDowButton = DropdownButton2<String>(
@@ -276,10 +288,13 @@ class CreditCardWidget extends StatelessWidget {
             ),
           )
           .toList(),
-      value: Utilities.convertCardTypeToString(cardInfo.cardType!),
+      value: Utilities.convertCardTypeToString(creditCard.cardType!),
       onChanged: (String? value) {
         context.read<CreditCardCubit>().setCardType =
             Utilities.convertCardType(value!);
+        context.read<CreditCardCubit>().setCreditCardNumber =
+            creditCardNumberEditingController.text;
+        context.read<CreditCardCubit>().setCVV = cvvEditingController.text;
       },
       buttonStyleData: ButtonStyleData(
         height: 60,
@@ -321,94 +336,95 @@ class CreditCardWidget extends StatelessWidget {
     return DropdownButtonHideUnderline(child: dropDowButton);
   }
 
-  Widget submitButton(CardInfo cardInfo) => Builder(builder: (context) {
-        return Container(
-          width: MediaQuery.of(context).size.width,
-          height: 60,
-          decoration: BoxDecoration(
-              color: Utilities.color1,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(10),
-              )),
-          child: InkWell(
-            onTap: () async {
-              // Check if a country is picked.
-              if (countryEditingController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.black,
-                    content: Text('Error: Country Is Not Picked.',
-                        style:
-                            TextStyle(fontSize: 16, color: Utilities.color2))));
-                return;
-              }
+  // Credit card submission button.
+  Widget submitButton(BuildContext context, CreditCard creditCard) => Container(
+        width: MediaQuery.of(context).size.width,
+        height: 60,
+        decoration: BoxDecoration(
+            color: Utilities.color1,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(10),
+            )),
+        child: InkWell(
+          onTap: () async {
+            // Check if a country is picked.
+            if (countryEditingController.text.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: Colors.black,
+                  content: Text('Error: Country Is Not Picked.',
+                      style:
+                          TextStyle(fontSize: 16, color: Utilities.color2))));
+              return;
+            }
 
-              // Check if a credit card number is inserted.
-              else if (creditCardNumberEditingController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.black,
-                    content: Text('Error: Credit Card Number Is Not Inserted.',
-                        style:
-                            TextStyle(fontSize: 16, color: Utilities.color2))));
-                return;
-              }
+            // Check if a credit card number is inserted.
+            else if (creditCardNumberEditingController.text.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: Colors.black,
+                  content: Text('Error: Credit Card Number Is Not Inserted.',
+                      style:
+                          TextStyle(fontSize: 16, color: Utilities.color2))));
+              return;
+            }
 
-              // Check if a cvv number is inserted.
-              else if (cvvEditingController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.black,
-                    content: Text('Error: CVV Number Is Missing.',
-                        style:
-                            TextStyle(fontSize: 16, color: Utilities.color2))));
-                return;
-              }
+            // Check if a cvv number is inserted.
+            else if (cvvEditingController.text.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: Colors.black,
+                  content: Text('Error: CVV Number Is Missing.',
+                      style:
+                          TextStyle(fontSize: 16, color: Utilities.color2))));
+              return;
+            }
 
-              // Check if card type is chosen (manually/automatically).
-              else if (Utilities.convertCardTypeToString(cardInfo.cardType!)
-                  .contains('Card Type')) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.black,
-                    content: Text('Error: Card Type Is Not Chosen.',
-                        style:
-                            TextStyle(fontSize: 16, color: Utilities.color2))));
-                return;
-              }
+            // Check if card type is chosen (manually/automatically).
+            else if (Utilities.convertCardTypeToString(creditCard.cardType!)
+                .contains('Card Type')) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: Colors.black,
+                  content: Text('Error: Card Type Is Not Chosen.',
+                      style:
+                          TextStyle(fontSize: 16, color: Utilities.color2))));
+              return;
+            }
 
-              /*String countryName = countryEditingController.text
-                  .substring(0, countryEditingController.text.indexOf('(') - 1); 
+            /* 
               String countryCode = countryEditingController.text.substring(
                   countryEditingController.text.indexOf('(') + 1,
                   countryEditingController.text.indexOf(')')); */
 
-              // The issuing country and the card type are already set.
-              context.read<CreditCardCubit>().setCreditCardNumber =
-                  creditCardNumberEditingController.text;
-              context.read<CreditCardCubit>().setCVV =
-                  cvvEditingController.text;
+            // Check if the credit card has been checked before or not.
+            if (Utilities.creditCardsRepository
+                .isCreditCardChecked(creditCard)) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: Colors.black,
+                  content: Text('Error : The Credit Card Is Already Checked.',
+                      style:
+                          TextStyle(fontSize: 16, color: Utilities.color2))));
+              return;
+            }
 
-              // Check if the credit card has been checked before or not.
-              if (creditCardController.isCreditCardChecked(cardInfo)) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.black,
-                    content: Text('Error : The Credit Card Is Already Checked.',
-                        style:
-                            TextStyle(fontSize: 16, color: Utilities.color2))));
-                return;
-              }
-
-              // Now, use BlocListener to show a dialog box in response to credit card capturing.
-              creditCardController.addCreditCard(cardInfo);
-            },
-            child: const Center(
-              child: Text(
-                'Submit',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700,
-                ),
+            // Now, use BlocListener to show a dialog box in response to credit card capturing.
+            Utilities.creditCardsRepository.saveCreditCard(creditCard);
+            countryEditingController.clear();
+            creditCardNumberEditingController.clear();
+            cvvEditingController.clear();
+            context.read<CreditCardCubit>().clear();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                backgroundColor: Colors.black,
+                content: Text('Card Captured Successfully!!!',
+                    style: TextStyle(fontSize: 16, color: Utilities.color1))));
+          },
+          child: const Center(
+            child: Text(
+              'Submit',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-        );
-      });
+        ),
+      );
 }

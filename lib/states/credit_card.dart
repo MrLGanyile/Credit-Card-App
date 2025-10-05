@@ -1,18 +1,15 @@
-import '../controller/credit_card_controller.dart';
 import '../utilities.dart';
 import 'country.dart';
 import 'credit_card_type.dart';
 
-class CardInfo implements Comparable<CardInfo> {
+class CreditCard implements Comparable<CreditCard> {
   String? creditCardNumber; // Stores credit card number.
   CreditCardType? cardType; // Stores card type from 12 predefined ones.
   String? cvv; // Stores a cvv of a card.
   Country? issuingCountry; // Stores the issuing country.
   bool isChecked;
 
-  CreditCardController creditCardController = CreditCardController();
-
-  CardInfo({
+  CreditCard({
     this.creditCardNumber,
     this.cardType = CreditCardType.cardType,
     this.cvv,
@@ -25,7 +22,7 @@ class CardInfo implements Comparable<CardInfo> {
       Object.hash(creditCardNumber, cardType, cvv, issuingCountry);
 
   @override
-  int compareTo(CardInfo other) {
+  int compareTo(CreditCard other) {
     int result = issuingCountry!.compareTo(other.issuingCountry!);
     if (result == 0) {
       result = Utilities.convertCardTypeToString(cardType!)
@@ -43,7 +40,7 @@ class CardInfo implements Comparable<CardInfo> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is CardInfo &&
+    return other is CreditCard &&
         creditCardNumber == other.creditCardNumber &&
         Utilities.convertCardTypeToString(cardType!) ==
             Utilities.convertCardTypeToString(other.cardType!) &&
@@ -54,7 +51,7 @@ class CardInfo implements Comparable<CardInfo> {
 
   @override
   String toString() {
-    return 'Card Type : ${Utilities.convertCardTypeToString(cardType!)} Card Number : $creditCardNumber CVV : $cvv';
+    return 'Card Type : ${Utilities.convertCardTypeToString(cardType!)} Card Number : $creditCardNumber CVV : $cvv Country: ${issuingCountry!.toString()}';
   }
 
   void clear() {
@@ -65,22 +62,15 @@ class CardInfo implements Comparable<CardInfo> {
     isChecked = false;
   }
 
-  set setCreditCardNumber(String creditCardNumber) =>
-      this.creditCardNumber = creditCardNumber;
-
-  void setCardType(CreditCardType cardType) => this.cardType = cardType;
-  set setCVV(String cvv) => this.cvv = cvv;
-  set setIssuingCountry(Country issuingCountry) =>
-      this.issuingCountry = issuingCountry;
   set setIsChecked(bool isChecked) => this.isChecked = isChecked;
 
   // Saves a credit card.
   void addCreditCard() {
-    creditCardController.addCreditCard(this);
+    Utilities.creditCardsRepository.saveCreditCard(this);
   }
 
   // Delete a saved credit card.
   void removeFromStoredCreditCards() {
-    creditCardController.removeFromStoredCreditCards(this);
+    Utilities.creditCardsRepository.removeFromStoredCreditCards(this);
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../states/countries_repository.dart';
+import '../states/country.dart';
 import '../utilities.dart';
-import 'banned_countries.dart';
-import 'country.dart';
 
-class BannedCountriesCubit extends Cubit<BannedCountries> {
-  BannedCountriesCubit() : super(Utilities.bannedCountries);
+class CountriesRepositoryCubit extends Cubit<CountriesRepository> {
+  CountriesRepositoryCubit() : super(Utilities.bannedCountries);
 
   int findNumberOfBannedCountries() => state.findNumberOfBannedCountries();
 
@@ -27,6 +27,6 @@ class BannedCountriesCubit extends Cubit<BannedCountries> {
   // Remove a country from a list of banned countries.
   void removeFromBannedCountries(Country country) {
     state.removeFromBannedCountries(country);
-    emit(BannedCountries(state.bannedCountries));
+    emit(CountriesRepository(state.bannedCountries));
   }
 }

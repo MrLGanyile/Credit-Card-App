@@ -1,9 +1,9 @@
 import 'package:country_picker/country_picker.dart';
-import 'package:credit_card_app/model/banned_countries.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../model/banned_countries_cubit.dart';
+import '../bloc/countries_repository_cubit.dart';
+import '../states/countries_repository.dart';
 import '../utilities.dart';
 
 class CountriesRemovalWidget extends StatelessWidget {
@@ -11,7 +11,7 @@ class CountriesRemovalWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      BlocBuilder<BannedCountriesCubit, BannedCountries>(
+      BlocBuilder<CountriesRepositoryCubit, CountriesRepository>(
         builder: (context, bannedCountries) {
           return Center(
             child: Column(
@@ -113,7 +113,7 @@ class CountriesRemovalWidget extends StatelessWidget {
         },
       );
 
-  Widget banButton(BuildContext context, BannedCountries bannedCountries) =>
+  Widget banButton(BuildContext context, CountriesRepository bannedCountries) =>
       Container(
         width: MediaQuery.of(context).size.width,
         height: 60,

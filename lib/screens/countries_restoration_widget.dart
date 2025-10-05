@@ -1,16 +1,15 @@
-import 'package:credit_card_app/model/banned_countries.dart';
 import 'package:credit_card_app/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../model/banned_countries_cubit.dart';
-
-import '../model/country.dart';
+import '../bloc/countries_repository_cubit.dart';
+import '../states/countries_repository.dart';
+import '../states/country.dart';
 
 class CountriesRestorationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
-      BlocBuilder<BannedCountriesCubit, BannedCountries>(
+      BlocBuilder<CountriesRepositoryCubit, CountriesRepository>(
         builder: (context, bannedCountries) {
           return ListView.builder(
             itemCount: Utilities.bannedCountries.findNumberOfBannedCountries(),
@@ -40,7 +39,7 @@ class CountriesRestorationWidget extends StatelessWidget {
                       ),
                       onPressed: () {
                         c
-                            .read<BannedCountriesCubit>()
+                            .read<CountriesRepositoryCubit>()
                             .removeFromBannedCountries(country);
                       }),
                 ],

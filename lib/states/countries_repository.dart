@@ -1,10 +1,10 @@
 import 'country.dart';
 
-class BannedCountries {
+class CountriesRepository {
   // Stores a list of all banned countries.
   List<Country> bannedCountries;
 
-  BannedCountries(this.bannedCountries);
+  CountriesRepository(this.bannedCountries);
 
   // Checks whether a given country is banned or not.
   bool isBanned(String countryCode) {
