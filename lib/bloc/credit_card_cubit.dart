@@ -88,14 +88,4 @@ class CreditCardCubit extends Cubit<CreditCard>
         issuingCountry: state.issuingCountry,
         isChecked: state.isChecked));
   }
-
-  // Saves a credit card.
-  void addCreditCard() {
-    Utilities.creditCardsRepository.saveCreditCard(state);
-  }
-
-  // Delete a saved credit card.
-  void removeFromStoredCreditCards() {
-    Utilities.creditCardsRepository.removeFromStoredCreditCards(state);
-  }
 }

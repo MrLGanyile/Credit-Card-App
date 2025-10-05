@@ -25,7 +25,7 @@ class CreditCardRepository {
 
   // Adds a card to a list of cards that have been checked before.
   void _addToCheckedCards(CreditCard creditCard) {
-    if (!checkedCards.contains(creditCard)) {
+    if (!checkedCards.contains(creditCard) && creditCard.isValidCard()) {
       creditCard.setIsChecked = true;
       checkedCards.add(creditCard);
     }
@@ -34,7 +34,7 @@ class CreditCardRepository {
   // Saves a credit card.
   void saveCreditCard(CreditCard card) {
     _addToCheckedCards(card);
-    if (!storedCards.contains(card) && _isValidCard(card)) {
+    if (!storedCards.contains(card)) {
       storedCards.add(card);
     }
   }
@@ -45,39 +45,6 @@ class CreditCardRepository {
       storedCards.remove(creditCard);
       print('****************************card removed');
     }
-  }
-
-  // Check whether the provided card is valid or not.
-  bool _isValidCard(CreditCard card) {
-    return !card.issuingCountry!.isBanned &&
-            card.creditCardNumber!.length == 16 ||
-        card.creditCardNumber!.length == 18 &&
-            _containsNumbersOnly(card.creditCardNumber!) &&
-            card.cardType != CreditCardType.cardType &&
-            _containsNumbersOnly(card.cvv!) &&
-            card.cvv!.length == 3;
-  }
-
-  // Determines whether a given card number contains numbers only.
-  bool _containsNumbersOnly(String cardNumber) {
-    for (int characterIndex = 0;
-        characterIndex < cardNumber.length;
-        characterIndex++) {
-      if (!(cardNumber[characterIndex] == '0' ||
-          cardNumber[characterIndex] == '0' ||
-          cardNumber[characterIndex] == '1' ||
-          cardNumber[characterIndex] == '2' ||
-          cardNumber[characterIndex] == '3' ||
-          cardNumber[characterIndex] == '4' ||
-          cardNumber[characterIndex] == '5' ||
-          cardNumber[characterIndex] == '6' ||
-          cardNumber[characterIndex] == '7' ||
-          cardNumber[characterIndex] == '8' ||
-          cardNumber[characterIndex] == '9')) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /* Determines whether a given status produced by the BIN Codes API

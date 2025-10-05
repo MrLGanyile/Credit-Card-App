@@ -62,7 +62,7 @@ class CreditCardWidget extends StatelessWidget {
     });
 
     // Call the BIN Code API when a credit card number is entered.
-    creditCardNumberEditingController.addListener(() {
+    /*creditCardNumberEditingController.addListener(() {
       // Once there are 6-8 card numbers entered display card type is possible.
       if ((creditCardNumberEditingController.text.length == 6 ||
               creditCardNumberEditingController.text.length == 8) &&
@@ -79,12 +79,12 @@ class CreditCardWidget extends StatelessWidget {
           // Unable to detect a card number from a BIN
           else {}
         });
-      }
+      } 
 
       // Set the credit card number.
       context.read<CreditCardCubit>().setCreditCardNumber =
           creditCardNumberEditingController.text;
-    });
+    }); */
 
     cvvEditingController.addListener(() {
       context.read<CreditCardCubit>().setCVV = cvvEditingController.text;
@@ -405,15 +405,40 @@ class CreditCardWidget extends StatelessWidget {
             }
 
             // Now, use BlocListener to show a dialog box in response to credit card capturing.
-            Utilities.creditCardsRepository.saveCreditCard(creditCard);
-            countryEditingController.clear();
-            creditCardNumberEditingController.clear();
-            cvvEditingController.clear();
-            context.read<CreditCardCubit>().clear();
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: Colors.black,
-                content: Text('Card Captured Successfully!!!',
-                    style: TextStyle(fontSize: 16, color: Utilities.color1))));
+            if (creditCard.isValidCard()) {
+              Utilities.creditCardsRepository.saveCreditCard(creditCard);
+              countryEditingController.clear();
+              creditCardNumberEditingController.clear();
+              cvvEditingController.clear();
+              context.read<CreditCardCubit>().clear();
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: Colors.black,
+                  content: Text('Card Captured Successfully!!!',
+                      style:
+                          TextStyle(fontSize: 16, color: Utilities.color1))));
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: Colors.black,
+                  content: Container(
+                    margin: const EdgeInsets.only(top: 250),
+                    child: Align(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('Error: Invalid Card',
+                              style: TextStyle(
+                                  fontSize: 16, color: Utilities.color2)),
+                          Text('Enter 16/18 Digits For Credit Card No',
+                              style: TextStyle(
+                                  fontSize: 16, color: Utilities.color2)),
+                          Text('Make Sure CVV Is 3 Digits',
+                              style: TextStyle(
+                                  fontSize: 16, color: Utilities.color2)),
+                        ],
+                      ),
+                    ),
+                  )));
+            }
           },
           child: const Center(
             child: Text(

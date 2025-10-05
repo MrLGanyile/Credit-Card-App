@@ -62,6 +62,38 @@ class CreditCard implements Comparable<CreditCard> {
     isChecked = false;
   }
 
+  // Check whether the provided card is valid or not.
+  bool isValidCard() {
+    return !issuingCountry!.isBanned && creditCardNumber!.length == 16 ||
+        creditCardNumber!.length == 18 &&
+            _containsNumbersOnly(creditCardNumber!) &&
+            cardType != CreditCardType.cardType &&
+            _containsNumbersOnly(cvv!) &&
+            cvv!.length == 3;
+  }
+
+  // Determines whether a given card number contains numbers only.
+  bool _containsNumbersOnly(String number) {
+    for (int characterIndex = 0;
+        characterIndex < number.length;
+        characterIndex++) {
+      if (!(number[characterIndex] == '0' ||
+          number[characterIndex] == '0' ||
+          number[characterIndex] == '1' ||
+          number[characterIndex] == '2' ||
+          number[characterIndex] == '3' ||
+          number[characterIndex] == '4' ||
+          number[characterIndex] == '5' ||
+          number[characterIndex] == '6' ||
+          number[characterIndex] == '7' ||
+          number[characterIndex] == '8' ||
+          number[characterIndex] == '9')) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   set setIsChecked(bool isChecked) => this.isChecked = isChecked;
 
   // Saves a credit card.
