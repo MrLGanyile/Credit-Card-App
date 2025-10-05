@@ -62,7 +62,7 @@ class CreditCardWidget extends StatelessWidget {
     });
 
     // Call the BIN Code API when a credit card number is entered.
-    /*creditCardNumberEditingController.addListener(() {
+    creditCardNumberEditingController.addListener(() {
       // Once there are 6-8 card numbers entered display card type is possible.
       if ((creditCardNumberEditingController.text.length == 6 ||
               creditCardNumberEditingController.text.length == 8) &&
@@ -79,12 +79,12 @@ class CreditCardWidget extends StatelessWidget {
           // Unable to detect a card number from a BIN
           else {}
         });
-      } 
+      }
 
       // Set the credit card number.
       context.read<CreditCardCubit>().setCreditCardNumber =
           creditCardNumberEditingController.text;
-    }); */
+    });
 
     cvvEditingController.addListener(() {
       context.read<CreditCardCubit>().setCVV = cvvEditingController.text;
