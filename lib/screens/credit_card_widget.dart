@@ -101,6 +101,20 @@ class CreditCardWidget extends StatelessWidget {
               decoration: BoxDecoration(color: Utilities.backgroundColor),
               child: ListView(
                 children: [
+                  /*const SizedBox(
+                    height: 5,
+                  ),
+                  IconButton(
+                      onPressed: () async {
+                        /*var cardDetails = await CardScanner.scanCard();
+
+                        print(cardDetails); */
+                      },
+                      icon: Icon(
+                        Icons.scanner,
+                        size: 16,
+                        color: Utilities.color1,
+                      )), */
                   const SizedBox(
                     height: 5,
                   ),

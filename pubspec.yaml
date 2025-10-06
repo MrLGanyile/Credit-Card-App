@@ -32,7 +32,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   dropdown_button2: ^2.1.4
   country_picker: 
-  card_scanner:
+  # card_scanner:
   http: 
 
 
